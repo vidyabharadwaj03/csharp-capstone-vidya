@@ -6,11 +6,13 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using UserService.Data;
-using UserService.Dtos;
-using UserService.Options;
-using UserService.Services;
-using UserService.Validation;
+using ReservationService.BackgroundJobs;
+using ReservationService.Clients;
+using ReservationService.Data;
+using ReservationService.Dtos;
+using ReservationService.Options;
+using ReservationService.Services;
+using ReservationService.Validation;
 
 var errorJsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
@@ -25,33 +27,38 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "User Service API", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "Reservation Service API", Version = "v1" });
 });
 
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<ReturnRequestValidator>();
 
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<ServiceUrlsOptions>(builder.Configuration.GetSection("ServiceUrls"));
 
-builder.Services.AddSingleton<PasswordHasher>();
-builder.Services.AddSingleton<JwtTokenService>();
+var serviceUrls = builder.Configuration.GetSection("ServiceUrls").Get<ServiceUrlsOptions>() ?? new ServiceUrlsOptions();
 
-builder.Services.AddHttpClient<ReservationServiceClient>((sp, client) =>
+builder.Services.AddHttpClient<UserServiceClient>(client =>
 {
-    var serviceUrls = builder.Configuration.GetSection("ServiceUrls").Get<ServiceUrlsOptions>() ?? new ServiceUrlsOptions();
-    client.BaseAddress = new Uri(serviceUrls.ReservationService);
+    client.BaseAddress = new Uri(serviceUrls.UserService);
 });
+
+builder.Services.AddHttpClient<CatalogServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(serviceUrls.CatalogService);
+});
+
+builder.Services.AddScoped<WaitlistCascadeService>();
+builder.Services.AddHostedService<WaitlistExpiryBackgroundService>();
 
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddDbContext<UserServiceContext>(options =>
-        options.UseInMemoryDatabase("UserServiceDb"));
+    builder.Services.AddDbContext<ReservationServiceContext>(options =>
+        options.UseInMemoryDatabase("ReservationServiceDb"));
 }
 else
 {
-    var connectionString = builder.Configuration.GetConnectionString("UserDb");
-    builder.Services.AddDbContext<UserServiceContext>(options =>
+    var connectionString = builder.Configuration.GetConnectionString("ReservationDb");
+    builder.Services.AddDbContext<ReservationServiceContext>(options =>
         options.UseNpgsql(connectionString));
 }
 
@@ -128,18 +135,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsDevelopment())
 {
-    var context = scope.ServiceProvider.GetRequiredService<UserServiceContext>();
-    if (!app.Environment.IsDevelopment())
-    {
-        context.Database.Migrate();
-    }
-    else
-    {
-        var passwordHasher = scope.ServiceProvider.GetRequiredService<PasswordHasher>();
-        await DataSeeder.SeedAsync(context, passwordHasher);
-    }
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider.GetRequiredService<ReservationServiceContext>().Database.Migrate();
 }
 
 app.Run();

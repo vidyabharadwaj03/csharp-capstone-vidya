@@ -4,6 +4,8 @@ using CatalogService.Data;
 using CatalogService.Dtos;
 using Microsoft.EntityFrameworkCore;
 
+var errorJsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
@@ -42,7 +44,7 @@ app.UseExceptionHandler(errorApp =>
         {
             Error = "INTERNAL_SERVER_ERROR",
             Message = "An unexpected error occurred"
-        });
+        }, errorJsonOptions);
         await context.Response.WriteAsync(body);
     });
 });

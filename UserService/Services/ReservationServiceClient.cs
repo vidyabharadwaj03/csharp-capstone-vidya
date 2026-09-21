@@ -1,9 +1,12 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace UserService.Services;
 
 public class ReservationServiceClient
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
     private readonly HttpClient _httpClient;
     private readonly ILogger<ReservationServiceClient> _logger;
 
@@ -24,7 +27,7 @@ public class ReservationServiceClient
                 return new ReservationStatistics();
             }
 
-            var statistics = await response.Content.ReadFromJsonAsync<ReservationStatistics>();
+            var statistics = await response.Content.ReadFromJsonAsync<ReservationStatistics>(JsonOptions);
             return statistics ?? new ReservationStatistics();
         }
         catch (HttpRequestException ex)
