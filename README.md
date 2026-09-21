@@ -70,6 +70,45 @@ The system consists of **three independent microservices**:
 
 ---
 
+## Live Deployment
+
+**Status:** Deployed and running on AWS Elastic Beanstalk with an RDS PostgreSQL backend.
+
+**Base URL:** http://library-microservices-env.eba-p2w8irdb.us-east-1.elasticbeanstalk.com
+
+All three services run as separate processes on a single Elastic Beanstalk environment, with nginx routing
+requests to the Catalog and Reservation services by path prefix.
+
+| Service | Health Check | Swagger UI | API Base Path |
+|---|---|---|---|
+| User Service | `/health` | `/swagger` | `/api/...` |
+| Catalog Service | `/catalog/health` | `/catalog/swagger` | `/catalog/api/...` |
+| Reservation Service | `/reservations/health` | `/reservations/swagger` | `/reservations/api/...` |
+
+Try it:
+
+```bash
+BASE=http://library-microservices-env.eba-p2w8irdb.us-east-1.elasticbeanstalk.com
+
+curl $BASE/health
+curl $BASE/catalog/health
+curl $BASE/reservations/health
+
+curl $BASE/catalog/api/catalog/books
+
+curl -X POST $BASE/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com","password":"Demo123!@#","firstName":"Demo","lastName":"User","phoneNumber":"+1-555-0100"}'
+```
+
+**Infrastructure:**
+
+- AWS Elastic Beanstalk: `.NET 10` on 64-bit Amazon Linux 2023, single `t3.medium` instance
+- AWS RDS: PostgreSQL on `db.t3.micro`, one instance hosting three databases (`userservicedb`, `catalogservicedb`, `reservationservicedb`)
+- Three services deployed together as separate processes (via `Procfile`), routed through nginx
+
+---
+
 ## Getting Started
 
 ### Core Requirements Documents
@@ -179,8 +218,8 @@ Choose appropriate libraries for:
 
 ### Deployment
 
-- **AWS Elastic Beanstalk**: Application hosting (3 separate environments)
-- **AWS RDS**: PostgreSQL databases (3 databases)
+- **AWS Elastic Beanstalk**: Application hosting (one environment, three services as separate processes via `Procfile`, routed by nginx)
+- **AWS RDS**: PostgreSQL instance hosting all three service databases
 - **VPC & Security Groups**: Network security and service communication
 
 ---
