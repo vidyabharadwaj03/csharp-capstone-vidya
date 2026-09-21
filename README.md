@@ -77,13 +77,13 @@ The system consists of **three independent microservices**:
 **Review these foundational documents before implementation:**
 
 1. **[User Stories](docs/user-stories.md)** - **START HERE**
-    - 11 user stories defining all system functionality
+    - 14 user stories defining all system functionality
     - Business requirements and acceptance criteria
     - Your primary requirements document
 
 2. **[API Contracts](docs/api-contracts.md)** - **CRITICAL**
     - Complete external API interface specification
-    - All 10 endpoint definitions with request/response formats
+    - All 13 endpoint definitions with request/response formats
     - Defines the contract you must fulfill
 
 3. **[Development Environment Setup](docs/dev-enviroment-setup.md)**
@@ -137,13 +137,16 @@ API Contracts.
 - `GET /api/catalog/books` - Browse and search books with pagination
 - `GET /api/catalog/books/{bookId}` - View detailed book information
 
-### Reservation Service (Port 5003) - 5 Endpoints
+### Reservation Service (Port 5003) - 8 Endpoints
 
 - `POST /api/reservations` - Reserve an available book
 - `GET /api/reservations` - View active reservations
 - `POST /api/reservations/{reservationId}/checkout` - Checkout book (Librarian only)
 - `POST /api/reservations/{reservationId}/return` - Return book with late fee calculation (Librarian only)
 - `GET /api/reservations/history` - View complete borrowing history
+- `POST /api/reservations/waitlist` - Join a book's waitlist
+- `GET /api/reservations/waitlist` - View your waitlist entries
+- `DELETE /api/reservations/waitlist/{waitlistId}` - Leave a waitlist
 
 **See [API Contracts](docs/api-contracts.md) for complete specifications.**
 
@@ -195,13 +198,13 @@ Choose appropriate libraries for:
 
 ### User Story Compliance
 
-- All 11 user stories fully implemented
+- All 14 user stories fully implemented
 - All acceptance criteria met
 - All business rules enforced (5 reservation limit, 7-day expiry, 14-day checkout, $1/day late fees)
 
 ### API Contract Compliance
 
-- All 10 endpoints implemented as specified across all services
+- All 13 endpoints implemented as specified across all services
 - Request/response formats match exactly
 - HTTP status codes correct
 - Error response format consistent
@@ -268,11 +271,11 @@ You must adhere to:
 
 1. Read [User Stories](docs/user-stories.md) to understand what you're building
 2. Study [API Contracts](docs/api-contracts.md) to understand the exact API interface
-3. Review [Milestone 1](docs/milestone-1-microservices-architecture-data-modeling.md) for microservices architecture
-4. Set up your environment using [Development Environment Setup](docs/dev-environment-setup.md)
+3. Review [Milestone 1](docs/milestone-1-microservices-architecture-and-data-modeling.md) for microservices architecture
+4. Set up your environment using [Development Environment Setup](docs/dev-enviroment-setup.md)
 5. Build each service following Milestones 2-4
-6. Test comprehensively across all services (Milestone 5)
-7. Deploy to production following Milestone 6 guidance
+6. Test comprehensively across all services (minimum 80% coverage)
+7. Deploy to production following [Milestone 5](docs/milestone-5-deployment-production-readiness.md) guidance
 
 ---
 
